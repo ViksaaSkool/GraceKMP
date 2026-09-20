@@ -10,14 +10,12 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -38,7 +36,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.grace.app.core.GraceConstants
 import com.grace.app.resources.Res
@@ -87,6 +84,7 @@ fun GetMealScreen(
                     maxCardHeight * GraceDimens.CardAspectRatio
                 ).coerceAtLeast(1.dp)
                 val cardHeight = cardWidth / GraceDimens.CardAspectRatio
+                val horizontalInset = (maxWidth - cardWidth) / 2
 
                 Box(modifier = Modifier.fillMaxSize()) {
                     Column(
@@ -110,10 +108,15 @@ fun GetMealScreen(
                             modifier = Modifier.size(cardWidth, cardHeight)
                         )
                     }
-                    SettingsButton(
-                        onClick = viewModel::onSettingsClick,
-                        cardWidth = cardWidth
-                    )
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(GraceDimens.SettingsBarHeight)
+                            .padding(end = horizontalInset),
+                        contentAlignment = Alignment.TopEnd
+                    ) {
+                        SettingsButton(onClick = viewModel::onSettingsClick)
+                    }
                 }
             }
         }
@@ -130,24 +133,15 @@ fun GetMealScreen(
 @Composable
 private fun SettingsButton(
     onClick: () -> Unit,
-    cardWidth: Dp,
     modifier: Modifier = Modifier
 ) {
-    Row(
-        modifier = modifier
-            .width(cardWidth)
-            .height(GraceDimens.SettingsBarHeight),
-        horizontalArrangement = Arrangement.End,
-        verticalAlignment = Alignment.Bottom
-    ) {
-        IconButton(onClick = onClick, modifier = Modifier.size(48.dp)) {
-            Icon(
-                painter = painterResource(Res.drawable.ic_settings),
-                contentDescription = stringResource(Res.string.open_settings_text),
-                tint = Color.White,
-                modifier = Modifier.size(GraceDimens.SettingsIconSize)
-            )
-        }
+    IconButton(onClick = onClick, modifier = modifier.size(48.dp)) {
+        Icon(
+            painter = painterResource(Res.drawable.ic_settings),
+            contentDescription = stringResource(Res.string.open_settings_text),
+            tint = Color.White,
+            modifier = Modifier.size(GraceDimens.SettingsIconSize)
+        )
     }
 }
 

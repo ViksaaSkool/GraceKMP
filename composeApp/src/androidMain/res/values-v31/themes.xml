@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+        Android 12+ system splash.
+
+        The platform always draws a splash screen; by default it shows the app
+        icon on the window background, which read as a second, unrelated splash
+        in front of the shared Compose one. Here it is reduced to the same plain
+        `colorPrimary` field the iOS launch storyboard paints, so both platforms
+        hand off to the Compose splash from an identical frame.
+
+        All base items are repeated because a qualified style replaces, not
+        merges with, the unqualified one.
+    -->
+    <style name="Theme.Grace" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:statusBarColor">@color/colorPrimary</item>
+        <item name="android:navigationBarColor">@color/colorPrimary</item>
+        <item name="android:windowBackground">@color/colorPrimary</item>
+
+        <item name="android:windowSplashScreenBackground">@color/colorPrimary</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/ic_splash_blank</item>
+        <item name="android:windowSplashScreenIconBackgroundColor">@android:color/transparent</item>
+    </style>
+</resources>

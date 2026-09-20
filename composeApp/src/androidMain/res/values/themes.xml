@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+        Host theme for the single activity. The original used
+        `GraceAppTheme.NoActionBar`; the equivalent Material light theme with no
+        action bar is used here. Phase 2 introduces the shared Compose theme;
+        Phase 11 finalises release themes.
+
+        Both bars are `colorPrimary` so the native starting window is the same
+        solid field the iOS launch storyboard paints (see values-v31 for the
+        Android 12+ splash attributes).
+    -->
+    <style name="Theme.Grace" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:statusBarColor">@color/colorPrimary</item>
+        <item name="android:navigationBarColor">@color/colorPrimary</item>
+        <item name="android:windowBackground">@color/colorPrimary</item>
+    </style>
+</resources>

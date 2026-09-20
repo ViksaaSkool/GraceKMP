@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CADisableMinimumFrameDurationOnPhone</key>
+	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>Grace needs access to the camera so you can capture a photo of your meal to be blessed.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Grace needs access to your photos so you can choose a meal photo to be blessed.</string>
+</dict>
+</plist>

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Parity with the original Grace app (PLAN.md §1.5) -->
+    <color name="colorPrimary">#03a9f4</color>
+    <color name="colorPrimaryDark">#2196f3</color>
+    <color name="colorAccent">#FF4081</color>
+</resources>

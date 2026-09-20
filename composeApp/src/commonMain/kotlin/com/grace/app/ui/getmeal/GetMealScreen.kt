@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -47,7 +48,7 @@ import com.grace.app.resources.take_photo_of_meal
 import com.grace.app.resources.upload_meal
 import com.grace.app.ui.theme.GraceColors
 import com.grace.app.ui.theme.GraceDimens
-import com.grace.app.ui.tnc.TncDialog
+import com.grace.app.ui.policy.PolicyDialog
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
@@ -68,17 +69,14 @@ fun GetMealScreen(
                 .fillMaxSize()
                 .background(GraceColors.Primary)
         ) {
-            BoxWithConstraints(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f)
-            ) {
+            BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
                 val spacing = GraceDimens.CardSpacing
                 val maxCardWidth = minOf(
                     maxWidth - GraceDimens.CardMargin * 2,
                     GraceDimens.CardMaxWidth
                 )
-                val maxCardHeight = ((maxHeight - spacing) / 2).coerceAtLeast(1.dp)
+                val availableForCards = (maxHeight - GraceDimens.SettingsBarHeight).coerceAtLeast(1.dp)
+                val maxCardHeight = ((availableForCards - spacing) / 2).coerceAtLeast(1.dp)
                 val cardWidth = minOf(
                     maxCardWidth,
                     maxCardHeight * GraceDimens.CardAspectRatio
@@ -86,11 +84,21 @@ fun GetMealScreen(
                 val cardHeight = cardWidth / GraceDimens.CardAspectRatio
                 val horizontalInset = (maxWidth - cardWidth) / 2
 
-                Box(modifier = Modifier.fillMaxSize()) {
-                    Column(
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Row(
                         modifier = Modifier
-                            .align(Alignment.Center)
-                            .fillMaxWidth(),
+                            .fillMaxWidth()
+                            .height(GraceDimens.SettingsBarHeight)
+                            .padding(start = horizontalInset),
+                        verticalAlignment = Alignment.Bottom
+                    ) {
+                        SettingsButton(onClick = viewModel::onSettingsClick)
+                    }
+                    Column(
+                        modifier = Modifier.weight(1f),
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center
                     ) {
@@ -108,21 +116,12 @@ fun GetMealScreen(
                             modifier = Modifier.size(cardWidth, cardHeight)
                         )
                     }
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(GraceDimens.SettingsBarHeight)
-                            .padding(start = horizontalInset),
-                        contentAlignment = Alignment.TopStart
-                    ) {
-                        SettingsButton(onClick = viewModel::onSettingsClick)
-                    }
                 }
             }
         }
 
         if (showTnc) {
-            TncDialog(
+            PolicyDialog(
                 onAccepted = viewModel::onTncAccepted,
                 onExit = viewModel::onTncExit
             )

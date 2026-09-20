@@ -1,0 +1,71 @@
+# --- Kotlin / Gradle ---
+.gradle/
+.kotlin/
+build/
+**/build/
+out/
+gradle/gradle-daemon-jvm.properties
+.konan/
+
+# --- Android / Secrets ---
+local.properties
+secrets.properties
+*.jks
+*.keystore
+*.pem
+*.p12
+*.mobileprovision
+google-services.json
+**/google-services.json
+GoogleService-Info.plist
+**/GoogleService-Info.plist
+.env
+*.env
+secrets.properties
+
+# --- Xcode / iOS ---
+xcuserdata/
+*.xcuserstate
+*.xccheckout
+*.moved-aside
+*.hmap
+*.ipa
+*.dSYM
+*.dSYM.zip
+DerivedData/
+Pods/
+Podfile.lock
+.swiftpm/
+.build/
+*.pbxuser
+*.mode1v3
+*.mode2v3
+*.perspectivev3
+!*.xcodeproj/project.pbxproj
+!*.xcodeproj/xcshareddata/
+!*.xcodeproj/project.xcworkspace/
+!*.xcworkspace/contents.xcworkspacedata
+**/xcshareddata/WorkspaceSettings.xcsettings
+
+# --- IDE / OS ---
+.idea/
+*.iml
+.vscode/
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+*.hprof
+*.log
+*.orig
+*.rej
+
+# --- Temp / noise (KMP project, kept for future targets) ---
+node_modules/
+captures/
+.externalNativeBuild/
+.cxx/
+current2.png
+
+# --- OpenCode ephemeral cache ---
+.opencode/cache/

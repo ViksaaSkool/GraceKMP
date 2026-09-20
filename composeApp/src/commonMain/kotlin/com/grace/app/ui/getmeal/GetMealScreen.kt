@@ -112,8 +112,8 @@ fun GetMealScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(GraceDimens.SettingsBarHeight)
-                            .padding(end = horizontalInset),
-                        contentAlignment = Alignment.TopEnd
+                            .padding(start = horizontalInset),
+                        contentAlignment = Alignment.TopStart
                     ) {
                         SettingsButton(onClick = viewModel::onSettingsClick)
                     }

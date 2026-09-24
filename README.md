@@ -1,4 +1,9 @@
-# Grace — Kotlin Multiplatform
+# Grace
+
+![icon.png](art/icon.png)
+
+
+# About
 
 Kotlin Multiplatform rewrite of the [Grace](../Grace) Android app (a joke app that
 blesses your meal). Android + iOS share a single **Compose Multiplatform** UI and all
@@ -8,6 +13,17 @@ The full migration plan — current-state analysis, architecture decisions, pari
 contract, and the phase-by-phase build order — lives in **[PLAN.md](PLAN.md)**.
 The parity results (what was verified, what was not, and every accepted
 deviation) live in **[docs/parity/REPORT.md](docs/parity/REPORT.md)**.
+
+
+The current version of the app is part of the talk [for Droidcon Lisbon 26](https://x.com/droidconLisbon/status/2089261109689643248)
+
+![Droidcon](art/dclx_26.png)
+
+
+# Demo
+
+<img src="art/1.png" width="200" height="400"/> <img src="art/2.png" width="200" height="400"/> <img src="art/3.png" width="200" height="400"/> <img src="art/4.png" width="200" height="400"/>
+
 
 ## Status
 
@@ -171,6 +187,13 @@ xcrun simctl launch  <device-id> com.grace.app
 ```
 
 ### Release signing (Android)
+
+For day-to-day local builds of a signed, Play-ready Android App Bundle use the
+helper script — see [`BUILD_LOCAL_ANDROID.md`](BUILD_LOCAL_ANDROID.md):
+
+```bash
+./tools/build-local-aab.sh v-1.0.5
+```
 
 `assembleRelease` runs R8 + resource shrinking. Signing credentials are read
 from `local.properties` (gitignored) or the environment — never from the build

@@ -8,6 +8,19 @@ plugins {
     alias(libs.plugins.composeCompiler)
 }
 
+// ---------------------------------------------------------------------------
+// Versioning overrides for release builds. `tools/build-local-aab.sh` passes
+// -PandroidVersionCode / -PandroidVersionName so every Google Play upload gets a
+// unique, increasing version code. Local builds fall back to the committed
+// defaults below.
+// ---------------------------------------------------------------------------
+val overrideVersionCode = providers.gradleProperty("androidVersionCode").orNull?.toIntOrNull()
+val overrideVersionName = providers.gradleProperty("androidVersionName").orNull
+
+require(overrideVersionCode == null || overrideVersionCode in 1..2_100_000_000) {
+    "androidVersionCode must be between 1 and 2,100,000,000 (was $overrideVersionCode)"
+}
+
 kotlin {
     androidTarget {
         compilerOptions {
@@ -68,8 +81,8 @@ android {
         applicationId = "com.grace.app"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
-        versionCode = 1
-        versionName = "1.0.4"
+        versionCode = overrideVersionCode ?: 1
+        versionName = overrideVersionName ?: "1.0.4"
     }
 
     /**

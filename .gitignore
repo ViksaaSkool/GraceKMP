@@ -23,6 +23,11 @@ GoogleService-Info.plist
 *.env
 secrets.properties
 
+# --- Android release signing / local build state ---
+/keystore_grace.jks
+/.local-version
+/build-local/
+
 # --- Xcode / iOS ---
 xcuserdata/
 *.xcuserstate

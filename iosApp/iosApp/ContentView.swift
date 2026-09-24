@@ -15,6 +15,11 @@ private let gracePrimary = UIColor(
 
 struct ComposeView: UIViewControllerRepresentable {
     func makeUIViewController(context: Context) -> UIViewController {
+        // Install the Google Mobile Ads / UMP bridge before the shared UI is created, so
+        // the first `MonetizationCoordinator.start()` can see it. The bridge is a no-op
+        // until those Swift packages are linked — see docs/monetization-setup.md.
+        GraceMonetizationBootstrap.installIfNeeded()
+
         let controller = MainViewControllerKt.MainViewController()
         controller.view.backgroundColor = gracePrimary
         return controller

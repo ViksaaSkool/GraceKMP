@@ -24,7 +24,22 @@ enum class GraceToken {
     Interrupted,
     SomethingWentWrong,
     ShareSuccess,
-    ShareError
+    ShareError,
+
+    /** Remove Ads purchase completed successfully. */
+    RemoveAdsPurchased,
+
+    /** Restore found an entitlement on the store account. */
+    RestoreSuccess,
+
+    /** Restore completed but the store account owns nothing. */
+    RestoreNothing,
+
+    /** Purchase failed for a real reason (cancellation never reaches this). */
+    PurchaseFailed,
+
+    /** Restore failed for a real reason. */
+    RestoreFailed
 }
 
 /**

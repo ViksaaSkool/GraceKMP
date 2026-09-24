@@ -8,6 +8,8 @@ pluginManagement {
                 includeGroupAndSubgroups("androidx")
                 includeGroupAndSubgroups("com.android")
                 includeGroupAndSubgroups("com.google")
+                // Google Mobile Ads Next-Gen pulls Cronet from Google's Maven.
+                includeGroupAndSubgroups("org.chromium")
             }
         }
         mavenCentral()
@@ -22,6 +24,8 @@ dependencyResolutionManagement {
                 includeGroupAndSubgroups("androidx")
                 includeGroupAndSubgroups("com.android")
                 includeGroupAndSubgroups("com.google")
+                // Google Mobile Ads Next-Gen pulls Cronet from Google's Maven.
+                includeGroupAndSubgroups("org.chromium")
             }
         }
         mavenCentral()

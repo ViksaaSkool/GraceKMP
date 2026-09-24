@@ -4,6 +4,7 @@ import com.grace.app.core.isDebugBuild
 import com.grace.app.domain.food.ClassificationOutcome
 import com.grace.app.domain.food.IsPhotoOfMealUseCase
 import com.grace.app.domain.model.MealContent
+import com.grace.app.domain.monetization.MonetizationCoordinator
 import com.grace.app.domain.photo.BlessPhotoUseCase
 import com.grace.app.ui.GraceViewModel
 import com.grace.app.ui.components.GraceSnackbarController
@@ -30,7 +31,8 @@ class LoadingViewModel(
     private val isPhotoOfMeal: IsPhotoOfMealUseCase,
     private val blessPhoto: BlessPhotoUseCase,
     private val navigator: Navigator,
-    private val snackbar: GraceSnackbarController
+    private val snackbar: GraceSnackbarController,
+    private val monetization: MonetizationCoordinator
 ) : GraceViewModel() {
 
     private var working = false
@@ -88,7 +90,19 @@ class LoadingViewModel(
     private suspend fun bless() {
         val blessedUri = blessPhoto(photoUri)
         if (blessedUri.isNotEmpty()) {
-            navigator.replace(Screen.Photo(MealContent.Approves, blessedUri))
+            // Monetization sits between "the image exists" and "show the image". The
+            // interstitial is awaited as a *platform modal* — deliberately not a navigation
+            // route, because replacing/pushing away from this screen would dispose the
+            // ViewModel, rerun the blessing and emit a bogus interruption snackbar.
+            // Every non-dismissal outcome returns `false`, so the photo is never withheld.
+            val adWasShown = monetization.onBlessingSucceeded()
+            navigator.replace(
+                Screen.Photo(
+                    content = MealContent.Approves,
+                    photoUri = blessedUri,
+                    showRemoveAdsPrompt = adWasShown
+                )
+            )
         } else {
             snackbar.show(GraceToken.SomethingWentWrong)
             navigator.replace(Screen.GetMeal)

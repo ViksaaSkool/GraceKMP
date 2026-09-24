@@ -28,6 +28,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.grace.app.core.GraceConstants
 import com.grace.app.domain.model.MealContent
+import com.grace.app.domain.monetization.MonetizationCoordinator
 import com.grace.app.platform.ConnectivityObserver
 import com.grace.app.platform.platformScreenInsets
 import com.grace.app.resources.Res
@@ -86,6 +87,7 @@ fun AppNavHost(modifier: Modifier = Modifier) {
     val navigator: Navigator = koinInject()
     val snackbarController: GraceSnackbarController = koinInject()
     val connectivityObserver: ConnectivityObserver = koinInject()
+    val monetizationCoordinator: MonetizationCoordinator = koinInject()
 
     val snackbarHostState = remember { SnackbarHostState() }
     val current by navigator.current.collectAsState()
@@ -103,6 +105,10 @@ fun AppNavHost(modifier: Modifier = Modifier) {
                 if (!connected) snackbarController.show(GraceToken.NoInternet)
             }
     }
+
+    // Monetization launch sequence: resolve the Remove Ads entitlement, refresh UMP
+    // consent, then start preloading an interstitial — in that order, once per process.
+    LaunchedEffect(Unit) { monetizationCoordinator.start() }
 
     // Main2Activity.onBackPressed: anything pushed over another screen (photo
     // details, Settings, a legal page) pops back to it; any other screen returns
@@ -169,7 +175,12 @@ fun AppNavHost(modifier: Modifier = Modifier) {
                         is Screen.Photo -> {
                             val shareChooserTitle = stringResource(Res.string.share_meal_text)
                             val viewModel: PhotoViewModel = koinViewModel {
-                                parametersOf(screen.content, screen.photoUri, shareChooserTitle)
+                                parametersOf(
+                                    screen.content,
+                                    screen.photoUri,
+                                    screen.showRemoveAdsPrompt,
+                                    shareChooserTitle
+                                )
                             }
                             PhotoScreen(viewModel = viewModel)
                         }

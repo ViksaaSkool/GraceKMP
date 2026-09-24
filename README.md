@@ -25,8 +25,9 @@ deviation) live in **[docs/parity/REPORT.md](docs/parity/REPORT.md)**.
 | 9 | Journey integration & system behaviours | ✅ |
 | 10 | Parity QA | ✅ [`docs/parity/REPORT.md`](docs/parity/REPORT.md) (one iOS item open) |
 | 11 | Release preparation | ✅ |
+| 12 | Monetization (Remove Ads + interstitial) | ✅ code+tests; **store/console values are placeholders** — see [`docs/monetization-setup.md`](docs/monetization-setup.md) |
 
-Test suite: **55 tests on Android JVM, 63 on the iOS simulator**, 0 failures.
+Test suite: **109 tests on Android JVM, 117 on the iOS simulator**, 0 failures.
 
 ## Architecture
 
@@ -186,6 +187,26 @@ GRACE_KEY_PASSWORD=…
 When they are absent the build still succeeds and emits
 `composeApp-release-unsigned.apk`, so a clean checkout never ships a
 debug-signed artefact by accident.
+
+### Monetization release guard
+
+The app ships with Remove Ads (RevenueCat) + AdMob interstitials behind UMP consent.
+Debug builds use Google's sample AdMob IDs and a dummy purchase backend so the flow is
+demoable. **Release builds refuse to assemble** while any AdMob/RevenueCat value is still
+a placeholder — see [`docs/monetization-setup.md`](docs/monetization-setup.md) for where
+each value comes from:
+
+```properties
+GRACE_ADMOB_APP_ID_ANDROID=ca-app-pub-…~…
+GRACE_ADMOB_INTERSTITIAL_UNIT_ID_ANDROID=ca-app-pub-…/…
+GRACE_REVENUECAT_KEY_ANDROID=appl_…
+```
+
+For local R8/shrinker verification only:
+
+```bash
+./gradlew :composeApp:assembleRelease -PallowPlaceholderMonetization=true
+```
 
 ### Release signing (iOS)
 

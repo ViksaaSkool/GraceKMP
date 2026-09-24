@@ -7,10 +7,12 @@ import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import com.grace.app.di.AndroidPlatformHolder
+import com.grace.app.platform.AdMobBootstrap
 import com.grace.app.platform.AndroidGraceFileStore
 import com.grace.app.platform.AndroidPhotoPicker
 import com.grace.app.platform.AndroidShareService
 import com.grace.app.platform.AndroidSystemUi
+import com.grace.app.platform.BuildConfigHolder
 
 /**
  * Single Android activity hosting the shared Compose Multiplatform UI. Replaces
@@ -34,9 +36,17 @@ class MainActivity : ComponentActivity() {
 
         // Activity-scoped services must be registered before STARTED, so they
         // are created here and handed to the Koin graph via the holder.
+        AndroidPlatformHolder.activity = this
         AndroidPlatformHolder.photoPicker = AndroidPhotoPicker(this, AndroidGraceFileStore(this))
         AndroidPlatformHolder.systemUi = AndroidSystemUi(this)
         AndroidPlatformHolder.shareService = AndroidShareService(this)
+
+        // Google Mobile Ads + UMP need an Activity for consent forms and for presenting a
+        // full-screen interstitial; both resolve it lazily through the holder.
+        BuildConfigHolder.setAppId(
+            com.grace.app.di.androidMonetizationConfig().adMobAppId
+        )
+        AdMobBootstrap.initialize(this)
 
         setContent {
             App()

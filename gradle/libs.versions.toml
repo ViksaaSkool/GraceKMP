@@ -18,6 +18,12 @@ kotlin = "2.4.10"
 kotlinx-datetime = "0.7.1"
 multiplatformSettings = "1.3.0"
 
+# Monetization. See docs/monetization-setup.md for how to replace the
+# placeholder AdMob/RevenueCat identifiers with production values.
+revenuecat = "3.10.1"
+googleMobileAds = "1.4.0"
+googleUmp = "4.0.0"
+
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 junit = { module = "junit:junit", version.ref = "junit" }
@@ -61,6 +67,12 @@ coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" 
 
 # Settings
 multiplatform-settings = { module = "com.russhwolf:multiplatform-settings", version.ref = "multiplatformSettings" }
+multiplatform-settings-test = { module = "com.russhwolf:multiplatform-settings-test", version.ref = "multiplatformSettings" }
+
+# Monetization — shared (RevenueCat) + Android (Google Mobile Ads Next-Gen, UMP)
+purchases-core = { module = "com.revenuecat.purchases:purchases-kmp-core", version.ref = "revenuecat" }
+google-mobile-ads = { module = "com.google.android.libraries.ads.mobile.sdk:ads-mobile-sdk", version.ref = "googleMobileAds" }
+google-user-messaging-platform = { module = "com.google.android.ump:user-messaging-platform", version.ref = "googleUmp" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

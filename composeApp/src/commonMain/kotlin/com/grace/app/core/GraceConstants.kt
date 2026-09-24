@@ -77,6 +77,19 @@ object GraceConstants {
     // Preferences (Constants.java:51)
     const val DISCLAIMER_TNC_KEY = "disclaimer_tnc_key"
 
+    /**
+     * Version of the legal documents the customer must accept before entering the app.
+     * Bumped when advertising/purchases were introduced so existing installs are shown the
+     * material changes again (see `SettingsStore.acceptedPolicyVersion`).
+     */
+    const val REQUIRED_POLICY_VERSION = 2
+
+    // Monetization identifiers. Conceptual IDs are fixed; the *store records* behind them
+    // are configured in App Store Connect / Play Console / the RevenueCat dashboard.
+    const val ENTITLEMENT_REMOVE_ADS = "remove_ads"
+    const val OFFERING_DEFAULT = "default"
+    const val PRODUCT_REMOVE_ADS_LIFETIME = "remove_ads_lifetime"
+
     const val PRIVACY_POLICY_URL = "https://blessameal.com/privacy_policy.html"
 
     const val TERMS_AND_CONDITIONS_URL = "https://blessameal.com/terms_and_conditions.html"

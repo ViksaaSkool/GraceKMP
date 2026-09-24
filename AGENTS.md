@@ -21,6 +21,7 @@ DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer \
 ```
 - iOS requires `DEVELOPER_DIR` pointed at the full Xcode install (not CommandLineTools).
 - Release signing reads `local.properties` (gitignored) or env vars — never committed.
+- Local signed Android AABs: `./tools/build-local-aab.sh v-<version>` (see `BUILD_LOCAL_ANDROID.md`).
 
 ## Architecture
 - **UDF (State/Action/Effect) + ViewModels** (ADR-2) replaces the original MVP + `Loader` + EventBus.

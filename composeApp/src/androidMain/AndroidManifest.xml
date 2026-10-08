@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:installLocation="auto">
 
     <queries>
@@ -25,6 +26,18 @@
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.FLASHLIGHT" />
 
+    <!--
+      Grace requests contextual / non-personalized ads only, so it does not use the
+      Advertising ID. Google Mobile Ads merges its own AD_ID permission in; strip it from
+      the merged manifest so Play never sees the app as requesting an ad identifier.
+      (Google Play still requires the permission to be *declared* for legacy compatibility
+      in some integrations — if ad delivery regresses, revisit this together with the
+      Play Console Data Safety answers rather than re-enabling it unilaterally.)
+    -->
+    <uses-permission
+        android:name="com.google.android.gms.permission.AD_ID"
+        tools:node="remove" />
+
     <uses-feature android:name="android.hardware.camera2.full" />
     <uses-feature
         android:name="android.hardware.camera"
@@ -41,9 +54,24 @@
         android:supportsRtl="false"
         android:theme="@style/Theme.Grace">
 
+        <!--
+          AdMob application ID, injected by Gradle (manifest placeholder). Google's sample
+          ID is used in debug; release refuses to build until the production ID is set —
+          see docs/monetization-setup.md.
+        -->
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="${adMobAppId}" />
+
+        <!--
+          `standard` (the platform default) is stated explicitly because Google Play
+          Billing hands the customer off to a banking app for purchase verification; any
+          other launch mode can cancel the purchase on return.
+        -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
+            android:launchMode="standard"
             android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

@@ -47,4 +47,24 @@
     <string name="invite_friends_message">Bless your meals with Grace. Get it here: %1$s</string>
     <string name="share_success_text">Invite sent!</string>
     <string name="share_error_text">Hmm&#8230; Something went wrong</string>
+
+    <!-- Monetization: Remove Ads prompt + Settings → Grace Premium -->
+    <string name="grace_premium_title">Grace Premium</string>
+    <string name="remove_ads_prompt_title">Enjoy Grace without ads</string>
+    <string name="remove_ads_prompt_body">Remove every ad from Grace with a one-time purchase.</string>
+    <string name="remove_ads_text">Remove Ads</string>
+    <string name="remove_ads_with_price">Remove Ads &#183; %1$s</string>
+    <string name="purchased_text">Purchased</string>
+    <string name="restore_purchases_text">Restore Purchases</string>
+    <string name="privacy_choices_text">Privacy Choices</string>
+    <string name="not_now_text">Not Now</string>
+    <string name="premium_unavailable_text">Unavailable in this build</string>
+    <string name="support_id_label">Support ID: %1$s</string>
+
+    <!-- Monetization feedback -->
+    <string name="remove_ads_purchased_text">Ads removed. Enjoy Grace!</string>
+    <string name="restore_success_text">Purchase restored</string>
+    <string name="restore_nothing_text">No previous purchase found on this account</string>
+    <string name="purchase_error_text">Purchase didn&#39;t complete. Please try again.</string>
+    <string name="restore_error_text">Couldn&#39;t restore right now. Please try again.</string>
 </resources>

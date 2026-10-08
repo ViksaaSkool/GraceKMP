@@ -12,7 +12,16 @@ sealed interface Screen {
     data object Splash : Screen
     data object GetMeal : Screen
     data class Loading(val photoUri: String, val message: LoadingMessage) : Screen
-    data class Photo(val content: MealContent, val photoUri: String?) : Screen
+    data class Photo(
+        val content: MealContent,
+        val photoUri: String?,
+        /**
+         * One-shot flag: `true` when an interstitial was actually presented and closed
+         * for the blessing that produced this result. Consumed by `PhotoViewModel` on
+         * first composition so the Remove Ads prompt cannot reappear on recreation.
+         */
+        val showRemoveAdsPrompt: Boolean = false
+    ) : Screen
     data class PhotoDetails(val photoUri: String) : Screen
 
     /** Pushed over [GetMeal]; back pops to it. */

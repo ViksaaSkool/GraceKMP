@@ -10,6 +10,11 @@ import com.grace.app.resources.no_internets
 import com.grace.app.resources.no_photo_was_selected
 import com.grace.app.resources.no_photo_was_taken
 import com.grace.app.resources.permission_not_granted_text
+import com.grace.app.resources.purchase_error_text
+import com.grace.app.resources.remove_ads_purchased_text
+import com.grace.app.resources.restore_error_text
+import com.grace.app.resources.restore_nothing_text
+import com.grace.app.resources.restore_success_text
 import com.grace.app.resources.share_error_text
 import com.grace.app.resources.share_success_text
 import com.grace.app.resources.something_went_wrong_text
@@ -32,6 +37,11 @@ suspend fun graceMessageText(message: GraceMessage): String = when (message) {
             GraceToken.SomethingWentWrong -> Res.string.something_went_wrong_text
             GraceToken.ShareSuccess -> Res.string.share_success_text
             GraceToken.ShareError -> Res.string.share_error_text
+            GraceToken.RemoveAdsPurchased -> Res.string.remove_ads_purchased_text
+            GraceToken.RestoreSuccess -> Res.string.restore_success_text
+            GraceToken.RestoreNothing -> Res.string.restore_nothing_text
+            GraceToken.PurchaseFailed -> Res.string.purchase_error_text
+            GraceToken.RestoreFailed -> Res.string.restore_error_text
         }
     )
 }

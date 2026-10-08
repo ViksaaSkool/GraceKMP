@@ -2,6 +2,7 @@ package com.grace.app.di
 
 import com.grace.app.data.SettingsStore
 import com.grace.app.domain.food.IsPhotoOfMealUseCase
+import com.grace.app.domain.monetization.MonetizationCoordinator
 import com.grace.app.domain.photo.BlessPhotoUseCase
 import com.grace.app.ui.components.GraceSnackbarController
 import com.grace.app.ui.getmeal.GetMealViewModel
@@ -24,6 +25,17 @@ val appModule: Module = module {
     single { GraceSnackbarController() }
     single { SettingsStore(get()) }
 
+    // Monetization. The platform module supplies PurchasesRepository / AdConsentService /
+    // InterstitialAdService, so everything above this line stays SDK-free.
+    single {
+        MonetizationCoordinator(
+            purchases = get(),
+            consent = get(),
+            ads = get(),
+            settings = get()
+        )
+    }
+
     // Use cases
     factory { IsPhotoOfMealUseCase(get(), get()) }
     factory { BlessPhotoUseCase(get(), get()) }
@@ -37,16 +49,19 @@ val appModule: Module = module {
             isPhotoOfMeal = get(),
             blessPhoto = get(),
             navigator = get(),
-            snackbar = get()
+            snackbar = get(),
+            monetization = get()
         )
     }
     viewModel { params ->
         PhotoViewModel(
             content = params.get(),
             photoUri = params.get(),
+            showRemoveAdsPrompt = params.get(),
             navigator = get(),
             shareService = get(),
             snackbar = get(),
+            purchases = get(),
             shareChooserTitle = params.get()
         )
     }
@@ -55,6 +70,8 @@ val appModule: Module = module {
             navigator = get(),
             shareService = get(),
             snackbar = get(),
+            purchases = get(),
+            consent = get(),
             inviteMessage = params.get(),
             inviteChooserTitle = params.get()
         )
@@ -63,6 +80,8 @@ val appModule: Module = module {
 
 /**
  * Platform capabilities: `PhotoPicker`, `FoodClassifier`, `ShareService`,
- * `GraceFileStore`, `ImageProcessor`, `ConnectivityObserver`, `SystemUi`.
+ * `GraceFileStore`, `ImageProcessor`, `ConnectivityObserver`, `SystemUi`, plus the
+ * monetization trio (`PurchasesRepository`, `AdConsentService`,
+ * `InterstitialAdService`) and `MonetizationConfig`.
  */
 expect val platformModule: Module

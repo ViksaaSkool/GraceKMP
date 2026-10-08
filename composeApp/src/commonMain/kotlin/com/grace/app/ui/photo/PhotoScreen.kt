@@ -84,7 +84,33 @@ fun PhotoScreen(
     var wraithPulseStarted by remember { mutableStateOf(false) }
     var tapStripVisible by remember { mutableStateOf(content.hasPhoto) }
 
-    Column(modifier = modifier.fillMaxSize()) {
+    Box(modifier = modifier.fillMaxSize()) {
+        PhotoLayout(
+            content = content,
+            photoUri = photoUri,
+            viewModel = viewModel,
+            wraithPulseStarted = wraithPulseStarted,
+            tapStripVisible = tapStripVisible,
+            onPhotoTapped = { tapStripVisible = false },
+            onFeelWraith = { wraithPulseStarted = true }
+        )
+
+        // Overlaid, not inset: dismissing the prompt restores the exact original layout.
+        RemoveAdsPrompt(viewModel = viewModel)
+    }
+}
+
+@Composable
+private fun PhotoLayout(
+    content: MealContent,
+    photoUri: String?,
+    viewModel: PhotoViewModel,
+    wraithPulseStarted: Boolean,
+    tapStripVisible: Boolean,
+    onPhotoTapped: () -> Unit,
+    onFeelWraith: () -> Unit
+) {
+    Column(modifier = Modifier.fillMaxSize()) {
         // ---- Photo area (60%) ----
         Box(
             modifier = Modifier
@@ -98,7 +124,7 @@ fun PhotoScreen(
                     indication = null
                 ) {
                     viewModel.onPhotoClick()
-                    tapStripVisible = false
+                    onPhotoTapped()
                 }
         ) {
             if (content.hasPhoto && photoUri != null) {
@@ -188,7 +214,7 @@ fun PhotoScreen(
                         backgroundColor = Color.White,
                         textColor = GraceColors.Accent,
                         onClick = {
-                            if (content.leftIsFeelWraith) wraithPulseStarted = true
+                            if (content.leftIsFeelWraith) onFeelWraith()
                             else viewModel.onLeftButton()
                         },
                         modifier = Modifier.fillMaxWidth()

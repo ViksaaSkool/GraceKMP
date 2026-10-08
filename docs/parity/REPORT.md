@@ -27,9 +27,9 @@ this environment — see §6).
 | Check | Result |
 |---|---|
 | `./gradlew :composeApp:assembleDebug` | ✅ |
-| `./gradlew :composeApp:testDebugUnitTest` | ✅ **71 tests, 0 failures** |
-| `./gradlew :composeApp:iosSimulatorArm64Test` | ✅ **79 tests, 0 failures** |
-| `./gradlew :composeApp:assembleRelease` (R8 + shrink) | ✅ signed APK, verified with `apksigner` |
+| `./gradlew :composeApp:testDebugUnitTest` | ✅ **109 tests, 0 failures** |
+| `./gradlew :composeApp:iosSimulatorArm64Test` | ✅ **117 tests, 0 failures** |
+| `./gradlew :composeApp:assembleRelease` (R8 + shrink) | ✅ with `-PallowPlaceholderMonetization=true` until production monetization IDs are configured |
 | `xcodebuild -configuration Debug -sdk iphonesimulator` | ✅ |
 | `xcodebuild -configuration Release -sdk iphonesimulator` | ✅ |
 | Launch + render, Android emulator | ✅ |
@@ -50,7 +50,7 @@ this environment — see §6).
 | Photo — Angered | ✅ | ✅ | error-god composite, FEEL THE WRAITH / GIVE IT ANOTHER TRY |
 | Wraith pulse | ✅ | ✅ | measured ~12 mean-brightness delta between frames 550 ms apart |
 | PhotoDetails viewer | ✅ | ✅ | open from photo area, close button, back pops |
-| Settings (new) | ✅ | ✅ | gear in the Get Meal top-right; Privacy / Terms / Invite Friends rows; see §4.13 |
+| Settings (new) | ✅ | ✅ | gear in the Get Meal top-right; Privacy / Terms / Invite Friends rows + **Grace Premium** (Remove Ads, Restore Purchases, Privacy Choices, support ID) — see §4.18 |
 | Legal page (new) | ✅ | ✅ | in-app `WebPage`; back returns to Settings |
 | Invite Friends share | ✅ | ✅ | Android `ACTION_SEND text/plain` chooser; iOS `UIActivityViewController` (iPad popover anchored) |
 | Back behaviour | ✅ | n/a | back from Photo → GetMeal; back on GetMeal exits |
@@ -173,6 +173,7 @@ All are recorded here; none change user-visible behaviour except where noted.
 | 15 | Splash: `grace_main` rose from 350ms while the clouds were still opening, to an unrelated 30%-of-height destination with a 1.02 overshoot | The badge is released only after the whole cloud sequence has played (`clouds.join()`, 930ms) and all badge channels are joined before the hold. Its resting position is derived from the cloud artwork geometry (`SplashGeometry`): the top edge sits 24dp below the white-cloud boundary (asset y 210), which is below the sun (asset y 24.2–182.2), and the rise keyframes are monotonic (no overshoot). | Requested: the logo must stop inside the white cloud and never cover the sun, after the sun has appeared behind the clouds. Verified on-device: the sun is fully visible at y 915–1209px and the badge rests at y 1349–1926px. |
 | 16 | Splash cloud layer sized by `Image` intrinsic measurement | The cloud image is sized explicitly (`fillMaxWidth().height(maxWidth * 767/540)`) so `SplashGeometry` can derive the badge position exactly instead of relying on intrinsic measurement. | Makes the geometry deterministic across densities and tablet widths, and unit-testable. |
 | 17 | Not in the original: the navigation bar strip matched the window background on every screen | Every photo result screen (`Screen.Photo` — Asks, Approves and Angered) paints the strip behind the system navigation bar black, so each black panel reads as running to the very bottom edge. Every other screen keeps the window background. Implemented in `AppNavHost` (`systemNavigationBarBackdrop`, unit-tested) as a bottom-aligned rect the height of the safe-drawing bottom inset. | Requested for all photo result screens (they all carry a black panel). Painting behind the bar — rather than calling `setNavigationBarColor` — keeps it working on iOS, which has no tintable navigation bar, and leaves the screen's own content inset so the action buttons stay clear of the gesture area. |
+| 18 | Not in the original: no advertising, no purchases, no consent flow | **Monetization** (requested): an AdMob interstitial after every second successful blessing, a one-shot "Remove Ads" bottom sheet after a displayed ad, a Grace Premium section in Settings (Remove Ads · price, Restore Purchases, Privacy Choices, support ID), versioned legal acceptance (`REQUIRED_POLICY_VERSION = 2`, so existing installs review the new ads/purchase terms once), RevenueCat (anonymous App User ID) + UMP consent. Full detail in `docs/monetization-setup.md` and `docs/data-safety.md`. | Requested feature. Advertising stays *outside* the blessing use case (`LoadingViewModel.bless()` awaits the platform modal immediately before showing Approves; a failed/unavailable/consent-denied ad falls open to the result). Paid and unresolved entitlements never see an ad. |
 
 ## 5. Open items / required follow-up
 
@@ -201,6 +202,15 @@ All are recorded here; none change user-visible behaviour except where noted.
    Terms & Conditions page. `INVITE_FRIENDS_URL` is likewise the standard Play
    Store deep link for `com.grace.app` and must be swapped for the published
    store listing (and given an App Store URL on iOS) before release.
+7. **Monetization production values are placeholders** (requested feature, deviation #18).
+   Debug builds ship Google's sample AdMob IDs + a dummy purchase backend so the flow is
+   demoable; release builds refuse to assemble until the real IDs/keys are configured
+   (`-PallowPlaceholderMonetization=true` opts out for local R8 verification only). See
+   `docs/monetization-setup.md`.
+8. **iOS ads are not yet linked.** The Google Mobile Ads + UMP Swift packages are not in
+   the Xcode project; the bridge (`iosApp/iosApp/GraceAdBridge.swift`) compiles to a no-op
+   behind `#if canImport(GoogleMobileAds)`, so iOS never requests an ad today. Add the two
+   Swift packages per `docs/monetization-setup.md` §5 to activate.
 
 ## 6. Verification environment notes
 
@@ -219,7 +229,7 @@ All are recorded here; none change user-visible behaviour except where noted.
 | Runs on Android and iOS with identical UI and behaviour | ✅ UI identical; ⚠️ iOS food decision pending §5.1 |
 | Same assets, strings, colours, fonts, animation timings | ✅ |
 | Full journey: capture/pick → classify → bless → share + error path + TnC gate | ✅ verified on Android; ✅ on iOS except the classify decision |
-| Domain logic unit-tested (matcher, EXIF, geometry, naming) | ✅ 55 Android / 63 iOS tests |
+| Domain logic unit-tested (matcher, EXIF, geometry, naming, monetization) | ✅ 109 Android / 117 iOS tests |
 | No dead code carried over | ✅ |
 | Release builds produced for both platforms | ✅ (Android signed with a local verification key; iOS Release builds, archive needs a team) |
 | Parity report completed | ✅ this document |

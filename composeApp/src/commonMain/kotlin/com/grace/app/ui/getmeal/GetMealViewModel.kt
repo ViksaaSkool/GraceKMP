@@ -1,5 +1,6 @@
 package com.grace.app.ui.getmeal
 
+import com.grace.app.core.GraceConstants
 import com.grace.app.data.SettingsStore
 import com.grace.app.platform.PickResult
 import com.grace.app.platform.PhotoPicker
@@ -32,9 +33,11 @@ class GetMealViewModel(
     /** `GetMealFromFragment.disclaimerIsShown`, reset whenever the screen is recreated. */
     private var tncShown = false
 
-    /** `GetMealFromFragment.onStart()`: show the TnC dialog on first entry. */
+    /** `GetMealFromFragment.onStart()`: show the policy dialog until the *current*
+     *  documents are accepted. Acceptance is versioned, so shipping the advertising /
+     *  purchase terms re-prompts customers who only ever accepted version 1. */
     fun onStart() {
-        if (!settings.disclaimerTncAccepted && !tncShown) {
+        if (!settings.hasAcceptedCurrentPolicy && !tncShown) {
             tncShown = true
             _showTnc.value = true
         }
@@ -69,9 +72,9 @@ class GetMealViewModel(
         navigator.push(Screen.Settings)
     }
 
-    /** TnC `OK` — persist `disclaimer_tnc_key = true` and dismiss. */
+    /** Policy `OK` — persist acceptance of the currently shipped documents and dismiss. */
     fun onTncAccepted() {
-        settings.disclaimerTncAccepted = true
+        settings.acceptedPolicyVersion = GraceConstants.REQUIRED_POLICY_VERSION
         _showTnc.value = false
     }
 

@@ -23,7 +23,7 @@ The current version of the app is part of the talk [for Droidcon Lisbon 26](http
 # Demo
 
 <img src="art/1.png" width="200" height="400"/> <img src="art/2.png" width="200" height="400"/> <img src="art/3.png" width="200" height="400"/> <img src="art/4.png" width="200" height="400"/>
-
+<img src="art/5.png"/>
 
 ## Status
 

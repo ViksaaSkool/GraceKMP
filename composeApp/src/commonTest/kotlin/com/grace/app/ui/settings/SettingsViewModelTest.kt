@@ -1,12 +1,19 @@
 package com.grace.app.ui.settings
 
+import com.grace.app.core.MonetizationConfig
+import com.grace.app.core.MonetizationDebug
+import com.grace.app.data.SettingsStore
+import com.grace.app.domain.monetization.MonetizationCoordinator
 import com.grace.app.platform.AdConsentService
+import com.grace.app.platform.InterstitialAdService
+import com.grace.app.platform.InterstitialResult
 import com.grace.app.platform.PurchaseResult
 import com.grace.app.platform.PurchasesRepository
 import com.grace.app.platform.RemoveAdsProduct
 import com.grace.app.platform.RestoreResult
 import com.grace.app.platform.EntitlementState
 import com.grace.app.platform.ShareService
+import com.russhwolf.settings.MapSettings
 import com.grace.app.ui.components.GraceSnackbarController
 import com.grace.app.ui.navigation.LegalPage
 import com.grace.app.ui.navigation.Navigator
@@ -93,16 +100,32 @@ class SettingsViewModelTest {
         navigator: Navigator,
         shareService: ShareService = FakeShareService(),
         purchases: PurchasesRepository = FakePurchasesRepository(),
-        consent: AdConsentService = FakeConsentService()
+        consent: AdConsentService = FakeConsentService(),
+        settings: SettingsStore = SettingsStore(MapSettings()),
+        debug: MonetizationDebug = MonetizationDebug()
     ) = SettingsViewModel(
         navigator = navigator,
         shareService = shareService,
         snackbar = GraceSnackbarController(),
         purchases = purchases,
         consent = consent,
+        monetization = MonetizationCoordinator(purchases, consent, debugAds(), settings, debug),
+        settings = settings,
+        config = MonetizationConfig(
+            adMobAppId = MonetizationConfig.SAMPLE_ANDROID_APP_ID,
+            interstitialUnitId = MonetizationConfig.SAMPLE_INTERSTITIAL_UNIT_ID,
+            revenueCatApiKey = MonetizationConfig.REVENUECAT_PLACEHOLDER
+        ),
+        debug = debug,
         inviteMessage = "Bless your meals with Grace. Get it here: https://example.test/grace",
         inviteChooserTitle = "Invite friends via…"
     )
+
+    /** Never preloaded or shown — the Settings tests exercise purchases, not ads. */
+    private fun debugAds() = object : InterstitialAdService {
+        override suspend fun preload() = Unit
+        override suspend fun showIfReady(): InterstitialResult = InterstitialResult.Unavailable
+    }
 
     @Test
     fun privacyPolicyPushesThePrivacyPageOverSettings() {

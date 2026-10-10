@@ -24,6 +24,17 @@ data class MonetizationConfig(
         get() = !revenueCatApiKey.isValidRevenueCatKey
 
     /**
+     * True when the key is a RevenueCat **Test Store** key (`test_…`).
+     *
+     * Test Store exercises the real `RevenueCatPurchasesRepository` end to end — real
+     * `CustomerInfo`, real entitlements, real dashboard rows — with no App Store Connect
+     * and no Play Console account. It is development-only: the SDK crashes on purpose when
+     * it finds one in a release build, and the Gradle guard refuses one even earlier.
+     */
+    val usesTestStoreKey: Boolean
+        get() = revenueCatApiKey.startsWith(TEST_STORE_KEY_PREFIX)
+
+    /**
      * True when the ad identifiers are still Google's sample values. Sample IDs are
      * always valid to *run*, so this only matters for release validation.
      */
@@ -35,6 +46,9 @@ data class MonetizationConfig(
 
     companion object {
         const val REVENUECAT_PLACEHOLDER = "REPLACE_ME"
+
+        /** RevenueCat Test Store keys are `test_…`; real platform keys are `appl_`/`goog_`. */
+        const val TEST_STORE_KEY_PREFIX = "test_"
 
         /** Google's sample AdMob app IDs. */
         const val SAMPLE_ANDROID_APP_ID = "ca-app-pub-3940256099942544~3347511713"

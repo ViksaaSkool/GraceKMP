@@ -21,6 +21,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.backhandler.BackHandler
@@ -108,7 +109,13 @@ fun AppNavHost(modifier: Modifier = Modifier) {
 
     // Monetization launch sequence: resolve the Remove Ads entitlement, refresh UMP
     // consent, then start preloading an interstitial — in that order, once per process.
-    LaunchedEffect(Unit) { monetizationCoordinator.start() }
+    // The coordinator needs a scope to preload later if consent only arrives after launch;
+    // rememberCoroutineScope lives as long as this composable, i.e. the whole nav host.
+    val monetizationScope = rememberCoroutineScope()
+    LaunchedEffect(Unit) {
+        monetizationCoordinator.attachScope(monetizationScope)
+        monetizationCoordinator.start()
+    }
 
     // Main2Activity.onBackPressed: anything pushed over another screen (photo
     // details, Settings, a legal page) pops back to it; any other screen returns

@@ -72,7 +72,13 @@ actual val platformModule: Module = module {
     single<ShareService> { IosShareService() }
 
     single<MonetizationConfig> { iosMonetizationConfig() }
-    single<AdConsentService> { IosAdConsentService() }
+    single<AdConsentService> {
+        IosAdConsentService(
+            appId = get<MonetizationConfig>().adMobAppId,
+            // Google's demo IDs are invisible to UMP, so they must not hard-close the gate.
+            sampleAds = get<MonetizationConfig>().usesSampleAdIds
+        )
+    }
     single<InterstitialAdService> {
         val config = get<MonetizationConfig>()
         IosInterstitialAdService(
@@ -81,6 +87,6 @@ actual val platformModule: Module = module {
         )
     }
     single<PurchasesRepository> {
-        createPurchasesRepository(config = get(), settings = get())
+        createPurchasesRepository(config = get(), settings = get(), debug = get())
     }
 }

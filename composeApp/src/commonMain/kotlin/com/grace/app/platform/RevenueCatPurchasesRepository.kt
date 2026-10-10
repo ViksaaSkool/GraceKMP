@@ -3,9 +3,11 @@ package com.grace.app.platform
 import com.grace.app.core.GraceConstants.APP_TAG
 import com.grace.app.core.GraceConstants
 import com.grace.app.core.debugLog
+import com.grace.app.core.isDebugBuild
 import com.grace.app.core.logError
 import com.grace.app.data.SettingsStore
 import com.revenuecat.purchases.kmp.Purchases
+import com.revenuecat.purchases.kmp.LogLevel
 import com.revenuecat.purchases.kmp.PurchasesConfiguration
 import com.revenuecat.purchases.kmp.PurchasesDelegate
 import com.revenuecat.purchases.kmp.ktx.awaitCustomerInfo
@@ -65,6 +67,11 @@ class RevenueCatPurchasesRepository(
     }
 
     init {
+        if (isDebugBuild) {
+            // The SDK's own trace is the single most useful signal when a purchase or an
+            // entitlement misbehaves (Test Store modal, sandbox billing, restore, refunds).
+            runCatching { Purchases.logLevel = LogLevel.DEBUG }
+        }
         if (Purchases.isConfigured) {
             attachDelegate()
         } else {

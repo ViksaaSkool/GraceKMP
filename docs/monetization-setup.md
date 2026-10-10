@@ -29,6 +29,45 @@ only implements the three seams:
 
 ---
 
+## 2.1 Three tiers of RevenueCat backend
+
+`createPurchasesRepository` picks the backend from whatever key Gradle injects, so there is
+no runtime switch and no build flavour. Adding a key to `local.properties` is the only
+control:
+
+| Key in `local.properties` | Backend | Requires |
+|---|---|---|
+| absent, or `REPLACE_ME` | `DummyPurchasesRepository` (`$0.99`, instant success) | nothing |
+| `test_…` | RevenueCat **Test Store** | a free RevenueCat account only |
+| `appl_…` / `goog_…` | the real store sandbox | App Store Connect / Play Console |
+
+Debug builds now read `GRACE_REVENUECAT_KEY_ANDROID` (falling back to the placeholder), so
+the real `RevenueCatPurchasesRepository` is reachable without touching a build script.
+AdMob still forces Google's sample IDs in debug — a production ad unit must never receive
+development traffic.
+
+### Test Store setup (recommended for development)
+
+Test Store exercises the **real** `RevenueCatPurchasesRepository`: real `CustomerInfo`, real
+entitlement resolution, real dashboard rows — with no store accounts. The SDK shows a modal
+where you can simulate success, failure, or cancellation. Requires KMP SDK ≥ 2.2.2; this
+repo pins 3.10.1.
+
+1. RevenueCat dashboard → project for Grace (Android + iOS apps).
+2. **Apps and providers → Test configuration → create Test Store**, copy the `test_…` key.
+3. **Product catalog** → create a Test Store product with id `remove_ads_lifetime`.
+4. **Offerings** → attach it to the `default` offering as a package.
+5. Create the entitlement **`remove_ads`**.
+6. `GRACE_REVENUECAT_KEY_ANDROID=test_…` in `local.properties`, rebuild, install.
+
+`Purchases.logLevel` is already set to `DEBUG` in debug builds, so Logcat/Xcode carries the
+full SDK trace (product lookup, entitlement resolution, purchase, restore).
+
+> ⚠️ A `test_…` key must never reach a release build — the SDK crashes on purpose when it
+> finds one. `preReleaseBuild` refuses it first with a dedicated message.
+
+---
+
 ## 2. Placeholder inventory (what to populate)
 
 | Item | Where it lives | Development value | Production value |
@@ -137,6 +176,16 @@ required.
 - **Contextual / non-personalized ads only.** Android sets
   `RequestConfiguration.publisherPrivacyPersonalizationState = DISABLED` before
   initialization; iOS keeps `NSPrivacyTracking=false`.
+- **No ad is requested before the SDK is up.** `AdMobBootstrap.awaitInitialized()` /
+  `MobileAds.shared.start()` complete before UMP is asked anything — UMP answers from state
+  the Mobile Ads SDK owns, and querying it early fails permanently (consent is refreshed once
+  per process, so a lost race means no ad for the whole session).
+- **Demo ad IDs fall open, production IDs do not.** Google's sample IDs (`…9942544…`) are not
+  registered with UMP, so it can never return a decision for them. When
+  `MonetizationConfig.usesSampleAdIds` is true *and* UMP's answer is inconclusive (init
+  failure, network error, or "no form and still cannot request ads"), the consent services
+  publish `canRequestAds = true`. A positive UMP answer is always honoured. With production
+  IDs the gate stays strict — inconclusive still means no ad.
 - **No ATT.** No `NSUserTrackingUsageDescription`, no `ATTrackingManager`, no IDFA access.
 - **Android AD_ID permission is removed** from the merged manifest
   (`tools:node="remove"`). Verify with `./gradlew :composeApp:processReleaseManifest` and
@@ -184,6 +233,72 @@ required.
 
 ## 6. Testing checklist
 
+### In-app: the debug developer panel
+
+**Debug builds only** — Settings has a **Developer** panel below Grace Premium, gated on
+`MonetizationDebug.enabled` (`isDebugBuild`, a compile-time constant `false` in release, so
+R8 strips the whole surface). It exists so both flows are verifiable with no store account.
+
+| Row | Effect |
+|---|---|
+| Force next interstitial | Next blessing is ad-eligible regardless of cadence. Consumed once; does **not** advance the counter, so the real cadence is unaffected. |
+| Force Free / Force Purchased | Overrides the entitlement the coordinator sees, whatever the backend reports. Bypasses `DummyPurchasesRepository`, Test Store, and the real repository alike. |
+| Clear entitlement override | Defers to the real backend again. |
+| Reset blessing counter | `freeBlessingCount = 0`, so the next blessing is #1 and the 2nd is ad-eligible. |
+| Simulate reinstall | Clears `removeAdsEntitlementCached` and refreshes — exercises Restore without clearing app data. |
+| UMP geography | Cycles `Off → EEA → US → Off`, feeding `ConsentDebugSettings`. |
+| Reset all | Every switch plus both persisted values back to zero. |
+| Diagnostics rows | Backend tier, entitlement (+ override marker), blessing count, consent state. |
+
+### Why no ad appeared (fixed 2026-10-10)
+
+Three defects, each independently enough to suppress every ad:
+
+1. **`AdMobBootstrap` never initialized the SDK.** It called the static
+   `MobileAds.setRequestConfiguration(...)` *before* `MobileAds.initialize(...)`, believing
+   that installed the privacy configuration early. In GMA Next-Gen that call requires the SDK
+   to already be initialized, so it threw
+   `MobileAds.initialize must be called before using the Google Mobile Ads SDK`. Initialization
+   was abandoned, and every later call — preloader start, `pollAd`, `load` — failed with the
+   same error. The configuration rides along inside `InitializationConfig.Builder` anyway, so
+   nothing can be requested ahead of it. **Do not reintroduce the static call.**
+2. **Android had no on-demand load path.** `showIfReady()` only polled the preloader, so an
+   empty cache returned `Unavailable` on every blessing forever. It now falls back to
+   `InterstitialAd.load(...)` and presents that.
+3. **Preload ran only at launch**, when consent might not have arrived yet. The coordinator now
+   re-preloads as soon as `canRequestAds` turns true.
+
+Debug verification (logcat tag `APPTAG`):
+
+```
+Google Mobile Ads initialized (appId=ca-app-pub-3940256099942544~3347511713)
+UMP state: canRequestAds=true ... sampleAds=true
+Interstitial preload for ca-app-pub-3940256099942544/1033173712: started=true
+```
+
+Settings → Developer also shows a **"Last ad attempt"** row (`SkippedCadence`, `Unavailable`,
+`Failed`, `Shown`, `Forced`, …), which distinguishes "odd blessing, no ad due" from "eligible
+but the SDK had nothing".
+
+> UMP honours `setDebugGeography` only if the app id is registered as a debug app in the
+> AdMob console; with Google's sample IDs it may silently stay `Off`. The row shows the
+> *requested* value. With sample IDs, "Consent: granted" can also mean "UMP was inconclusive,
+> demo inventory allowed anyway" (§4) — check logcat for `UMP state:` to tell which.
+>
+> iOS shows "iOS ads: Swift packages not linked" — the GMA/UMP SPM packages are still
+> absent, so `IosInterstitialAdService` permanently returns `Unavailable` there.
+
+### Suggested manual sequence
+
+| Test | Steps |
+|---|---|
+| Interstitial appears | Developer → **Force next interstitial** → bless a photo → ad → Remove Ads prompt |
+| Every-second cadence | **Reset blessing counter** → bless twice; only the 2nd shows an ad |
+| Purchase (dummy or Test Store) | Developer → **Force Free** → Settings → Remove Ads → success; state becomes Purchased |
+| Purchase suppresses ads | Then **Force next interstitial** → next blessing shows no ad |
+| Restore after reinstall | **Simulate reinstall** → Settings → Restore → `NothingToRestore`; re-purchase, reinstall-simulate, Restore → `Success` |
+| Consent form | Developer → UMP geography: **EEA** → relaunch → UMP form appears |
+
 Automated (already in `commonTest`, run on Android JVM + iOS simulator):
 
 - Paid customers never see/load an ad, never increment the counter.
@@ -196,7 +311,8 @@ Automated (already in `commonTest`, run on Android JVM + iOS simulator):
 - Versioned legal acceptance: legacy Boolean migrates to v1 and v2 re-prompts.
 - `AdFrequencyPolicy`, `SettingsStore`, `MonetizationConfig` are pinned by tests.
 
-Platform (manual, requires store accounts):
+Platform (manual). Purchase testing needs no store accounts if you use a Test Store key
+(§2.1); these still require the real stores before launch:
 
 - Android Play internal track: purchase → reinstall → Restore.
 - iOS StoreKit sandbox / TestFlight: purchase → delete → restore.

@@ -61,6 +61,29 @@
     <string name="premium_unavailable_text">Unavailable in this build</string>
     <string name="support_id_label">Support ID: %1$s</string>
 
+    <!--
+      Debug-only developer panel. These strings are only ever rendered when
+      `MonetizationDebug.enabled` is true (a debug build), so adding them here cannot
+      affect production UI or the parity screenshots.
+    -->
+    <string name="debug_panel_title">Developer</string>
+    <string name="debug_force_next_ad_text">Force next interstitial</string>
+    <string name="debug_force_free_text">Force Free</string>
+    <string name="debug_force_purchased_text">Force Purchased</string>
+    <string name="debug_clear_override_text">Clear entitlement override</string>
+    <string name="debug_reset_counter_text">Reset blessing counter</string>
+    <string name="debug_clear_cached_entitlement_text">Simulate reinstall</string>
+    <string name="debug_geography_text">UMP geography: %1$s</string>
+    <string name="debug_reset_all_text">Reset all</string>
+    <string name="debug_backend_label">Backend: %1$s</string>
+    <string name="debug_entitlement_label">Entitlement: %1$s</string>
+    <string name="debug_counter_label">Blessings: %1$d</string>
+    <string name="debug_consent_label">Consent: %1$s</string>
+    <string name="debug_force_ad_pending_label">Next ad: forced</string>
+    <string name="debug_last_ad_label">Last ad attempt: %1$s</string>
+    <string name="debug_override_active_label">override active</string>
+    <string name="debug_ads_disabled_ios_label">iOS ads: Swift packages not linked</string>
+
     <!-- Monetization feedback -->
     <string name="remove_ads_purchased_text">Ads removed. Enjoy Grace!</string>
     <string name="restore_success_text">Purchase restored</string>

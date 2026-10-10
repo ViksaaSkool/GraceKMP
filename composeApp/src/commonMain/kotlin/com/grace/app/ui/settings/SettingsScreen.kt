@@ -25,6 +25,23 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.grace.app.resources.Res
+import com.grace.app.resources.debug_backend_label
+import com.grace.app.resources.debug_clear_cached_entitlement_text
+import com.grace.app.resources.debug_clear_override_text
+import com.grace.app.resources.debug_consent_label
+import com.grace.app.resources.debug_counter_label
+import com.grace.app.resources.debug_ads_disabled_ios_label
+import com.grace.app.resources.debug_last_ad_label
+import com.grace.app.resources.debug_entitlement_label
+import com.grace.app.resources.debug_force_ad_pending_label
+import com.grace.app.resources.debug_force_free_text
+import com.grace.app.resources.debug_force_next_ad_text
+import com.grace.app.resources.debug_force_purchased_text
+import com.grace.app.resources.debug_geography_text
+import com.grace.app.resources.debug_override_active_label
+import com.grace.app.resources.debug_panel_title
+import com.grace.app.resources.debug_reset_all_text
+import com.grace.app.resources.debug_reset_counter_text
 import com.grace.app.resources.disclaimer_title
 import com.grace.app.resources.grace_premium_title
 import com.grace.app.resources.ic_chevron_right
@@ -100,6 +117,27 @@ fun SettingsScreen(
                 .padding(top = GraceDimens.BottomBetweenButtonsMargin)
         )
 
+        // Debug builds only — `debugVisible` is a compile-time false in release, so the
+        // panel cannot appear in production and the parity screenshots are unaffected.
+        if (viewModel.debugVisible) {
+            val debugState by viewModel.debugState.collectAsState()
+            GraceDebugSection(
+                state = debugState,
+                onForceNextAd = viewModel::onDebugForceNextAd,
+                onForceFree = viewModel::onDebugForceFree,
+                onForcePurchased = viewModel::onDebugForcePurchased,
+                onClearOverride = viewModel::onDebugClearOverride,
+                onResetCounter = viewModel::onDebugResetCounter,
+                onSimulateReinstall = viewModel::onDebugClearCachedEntitlement,
+                onCycleGeography = viewModel::onDebugCycleGeography,
+                onResetAll = viewModel::onDebugResetAll,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = GraceDimens.ScreenHorizontalMargin)
+                    .padding(top = GraceDimens.BottomBetweenButtonsMargin)
+            )
+        }
+
         RoundedRippleButton(
             text = stringResource(Res.string.invite_friends_text),
             backgroundColor = GraceColors.Accent,
@@ -174,6 +212,123 @@ private fun GracePremiumSection(
                 onClick = null
             )
         }
+    }
+}
+
+/**
+ * Debug-only panel for exercising the interstitial cadence and the Remove Ads purchase
+ * without a store account. Mirrors the Grace Premium metrics deliberately so it reads as
+ * part of the same screen; only reachable when `MonetizationDebug.enabled` is true.
+ */
+@Composable
+private fun GraceDebugSection(
+    state: MonetizationDebugUiState,
+    onForceNextAd: () -> Unit,
+    onForceFree: () -> Unit,
+    onForcePurchased: () -> Unit,
+    onClearOverride: () -> Unit,
+    onResetCounter: () -> Unit,
+    onSimulateReinstall: () -> Unit,
+    onCycleGeography: () -> Unit,
+    onResetAll: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+            .clip(RoundedCornerShape(GraceDimens.SettingsPanelRadius))
+            .background(Color.White)
+    ) {
+        SettingsSectionHeader(text = stringResource(Res.string.debug_panel_title))
+
+        SettingsRow(label = stringResource(Res.string.debug_force_next_ad_text), onClick = onForceNextAd)
+        SettingsDivider()
+        SettingsRow(label = stringResource(Res.string.debug_force_free_text), onClick = onForceFree)
+        SettingsDivider()
+        SettingsRow(
+            label = stringResource(Res.string.debug_force_purchased_text),
+            onClick = onForcePurchased
+        )
+        SettingsDivider()
+        SettingsRow(
+            label = stringResource(Res.string.debug_clear_override_text),
+            onClick = onClearOverride
+        )
+        SettingsDivider()
+        SettingsRow(
+            label = stringResource(Res.string.debug_reset_counter_text),
+            onClick = onResetCounter
+        )
+        SettingsDivider()
+        SettingsRow(
+            label = stringResource(Res.string.debug_clear_cached_entitlement_text),
+            onClick = onSimulateReinstall
+        )
+        SettingsDivider()
+        SettingsRow(
+            label = stringResource(
+                Res.string.debug_geography_text,
+                state.debugGeography.name
+            ),
+            onClick = onCycleGeography
+        )
+        SettingsDivider()
+        SettingsRow(label = stringResource(Res.string.debug_reset_all_text), onClick = onResetAll)
+
+        SettingsDivider()
+        SettingsRow(
+            label = stringResource(Res.string.debug_backend_label, state.backend),
+            onClick = null
+        )
+        SettingsDivider()
+        SettingsRow(
+            label = stringResource(
+                Res.string.debug_entitlement_label,
+                buildString {
+                    append(state.entitlement.name)
+                    if (state.entitlementOverridden) {
+                        append(" (")
+                        append(stringResource(Res.string.debug_override_active_label))
+                        append(")")
+                    }
+                }
+            ),
+            onClick = null
+        )
+        SettingsDivider()
+        SettingsRow(
+            label = stringResource(Res.string.debug_counter_label, state.blessingCount.toInt()),
+            onClick = null
+        )
+        SettingsDivider()
+        SettingsRow(
+            label = stringResource(
+                Res.string.debug_consent_label,
+                buildString {
+                    append(if (state.canRequestAds) "granted" else "not granted")
+                    if (state.forceNextAd) {
+                        append(" · ")
+                        append(stringResource(Res.string.debug_force_ad_pending_label))
+                    }
+                }
+            ),
+            onClick = null
+        )
+        SettingsDivider()
+        // The row that answers "why is no ad showing?" without needing logcat.
+        SettingsRow(
+            label = stringResource(
+                Res.string.debug_last_ad_label,
+                state.lastAdOutcome.name
+            ),
+            onClick = null
+        )
+        SettingsDivider()
+        // Always shown on iOS: the GMA/UMP Swift packages are not linked, so interstitials
+        // are permanently Unavailable there. Better to say so than look broken.
+        SettingsRow(
+            label = stringResource(Res.string.debug_ads_disabled_ios_label),
+            onClick = null
+        )
     }
 }
 

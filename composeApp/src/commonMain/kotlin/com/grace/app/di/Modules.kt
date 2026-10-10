@@ -1,5 +1,6 @@
 package com.grace.app.di
 
+import com.grace.app.core.MonetizationDebug
 import com.grace.app.data.SettingsStore
 import com.grace.app.domain.food.IsPhotoOfMealUseCase
 import com.grace.app.domain.monetization.MonetizationCoordinator
@@ -25,6 +26,10 @@ val appModule: Module = module {
     single { GraceSnackbarController() }
     single { SettingsStore(get()) }
 
+    // Debug-only monetization switches. One shared instance, so the Settings panel and
+    // the coordinator observe the same state. Inert in release builds.
+    single { MonetizationDebug() }
+
     // Monetization. The platform module supplies PurchasesRepository / AdConsentService /
     // InterstitialAdService, so everything above this line stays SDK-free.
     single {
@@ -32,7 +37,8 @@ val appModule: Module = module {
             purchases = get(),
             consent = get(),
             ads = get(),
-            settings = get()
+            settings = get(),
+            debug = get()
         )
     }
 
@@ -72,6 +78,10 @@ val appModule: Module = module {
             snackbar = get(),
             purchases = get(),
             consent = get(),
+            monetization = get(),
+            settings = get(),
+            config = get(),
+            debug = get(),
             inviteMessage = params.get(),
             inviteChooserTitle = params.get()
         )

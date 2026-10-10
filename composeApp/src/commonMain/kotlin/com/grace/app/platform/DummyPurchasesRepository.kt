@@ -2,6 +2,7 @@ package com.grace.app.platform
 
 import com.grace.app.core.GraceConstants
 import com.grace.app.core.MonetizationConfig
+import com.grace.app.core.MonetizationDebug
 import com.grace.app.data.SettingsStore
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -20,7 +21,8 @@ import kotlinx.coroutines.flow.asStateFlow
  * the "unresolved entitlement suppresses ads" rule.
  */
 class DummyPurchasesRepository(
-    private val settings: SettingsStore
+    private val settings: SettingsStore,
+    private val debug: MonetizationDebug = MonetizationDebug()
 ) : PurchasesRepository {
 
     private val _entitlementState = MutableStateFlow(EntitlementState.Free)
@@ -58,6 +60,12 @@ class DummyPurchasesRepository(
         }
 
     override suspend fun refresh() {
+        // A debug override masquerades as the real entitlement so the Settings premium
+        // section renders the same Purchased/Free rows it would with a live backend.
+        debug.entitlementOverride.value?.let {
+            _entitlementState.value = it
+            return
+        }
         _entitlementState.value =
             if (settings.removeAdsEntitlementCached) EntitlementState.Purchased
             else EntitlementState.Free
@@ -72,10 +80,11 @@ class DummyPurchasesRepository(
 /** Chooses the purchase backend for this build. */
 fun createPurchasesRepository(
     config: MonetizationConfig,
-    settings: SettingsStore
+    settings: SettingsStore,
+    debug: MonetizationDebug = MonetizationDebug()
 ): PurchasesRepository =
     if (config.purchasesAvailable) {
         RevenueCatPurchasesRepository(config.revenueCatApiKey, settings)
     } else {
-        DummyPurchasesRepository(settings)
+        DummyPurchasesRepository(settings, debug)
     }

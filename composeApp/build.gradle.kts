@@ -137,6 +137,18 @@ val productionInterstitialUnitId = secret("GRACE_ADMOB_INTERSTITIAL_UNIT_ID_ANDR
 val productionRevenueCatKey = secret("GRACE_REVENUECAT_KEY_ANDROID")
 
 /**
+ * Debug reads the *same* secrets as release, so a developer can drop a RevenueCat key into
+ * `local.properties` and exercise the real `RevenueCatPurchasesRepository` — including a
+ * `test_…` Test Store key, which needs no App Store Connect or Play Console account.
+ *
+ * AdMob is deliberately NOT read here: a production ad unit ID must never receive
+ * development traffic, so debug keeps Google's sample IDs unconditionally. A clean
+ * checkout with no `local.properties` still falls back to the placeholder RevenueCat key,
+ * which selects `DummyPurchasesRepository`.
+ */
+val debugRevenueCatKey = productionRevenueCatKey ?: revenuecatPlaceholder
+
+/**
  * Swift runtime compatibility libraries for iOS test executables that pull in RevenueCat's
  * Swift cinterop shims. The linker opts point at the active Xcode toolchain's Swift lib
  * directory — DEVELOPER_DIR first (which the repo's iOS commands already set), then the
@@ -214,7 +226,7 @@ android {
                 "ADMOB_INTERSTITIAL_UNIT_ID",
                 "\"$sampleInterstitialUnitId\""
             )
-            buildConfigField("String", "REVENUECAT_API_KEY", "\"$revenuecatPlaceholder\"")
+            buildConfigField("String", "REVENUECAT_API_KEY", "\"$debugRevenueCatKey\"")
         }
 
         getByName("release") {
@@ -285,13 +297,27 @@ tasks.matching { it.name == "preReleaseBuild" }.configureEach {
         val rc = env("GRACE_REVENUECAT_KEY_ANDROID") ?: placeholderRc
         val sampleIds = appId == sampleAppId || unitId == sampleUnitId
         val missingRc = rc == placeholderRc || rc.length <= 20 || !rc.contains('_')
+        // RevenueCat Test Store keys are debug-only by design: the SDK crashes on purpose
+        // when it finds one in a release build. Refuse here instead so the failure is
+        // legible and happens before the SDK is ever configured.
+        val testStoreRc = rc.startsWith("test_")
 
-        if (!allowPlaceholder && (sampleIds || missingRc)) {
+        if (!allowPlaceholder && (sampleIds || missingRc || testStoreRc)) {
+            val testStoreNote = if (testStoreRc) {
+                """
+                |The configured RevenueCat key is a Test Store key. Test Store is for
+                |development only — it must never reach the App Store or Google Play.
+                |Use the platform-specific public SDK key (appl_…/goog_…) for release.
+                |""".trimMargin()
+            } else {
+                ""
+            }
+
             throw GradleException(
                 """
                 |
                 |Grace release build refused: monetization is still placeholder-configured.
-                |
+                |$testStoreNote
                 |Set these in local.properties (gitignored) or the environment — see
                 |docs/monetization-setup.md for where each value comes from:
                 |

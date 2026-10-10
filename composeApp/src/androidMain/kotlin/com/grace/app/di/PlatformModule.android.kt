@@ -91,7 +91,12 @@ actual val platformModule: Module = module {
     single<MonetizationConfig> { androidMonetizationConfig() }
 
     single<AdConsentService> {
-        AndroidAdConsentService(activityProvider = { AndroidPlatformHolder.activity })
+        AndroidAdConsentService(
+            activityProvider = { AndroidPlatformHolder.activity },
+            debug = get(),
+            // Google's demo IDs are invisible to UMP, so they must not hard-close the gate.
+            sampleAds = get<MonetizationConfig>().usesSampleAdIds
+        )
     }
     single<InterstitialAdService> {
         AndroidInterstitialAdService(
@@ -101,6 +106,6 @@ actual val platformModule: Module = module {
         )
     }
     single<PurchasesRepository> {
-        createPurchasesRepository(config = get(), settings = get())
+        createPurchasesRepository(config = get(), settings = get(), debug = get())
     }
 }

@@ -82,6 +82,33 @@ class MonetizationConfigTest {
         assertEquals(key, MonetizationConfig.revenueCatKey(key))
     }
 
+    // ---- Test Store tiering --------------------------------------------------
+    // Test Store is the development-only middle tier: a real RevenueCat backend, but no
+    // App Store Connect / Play Console account. The Gradle release guard refuses `test_`
+    // keys, and the SDK itself crashes if one reaches a release build.
+
+    @Test
+    fun aTestStoreKeyIsRecognisedAndEnablesPurchases() {
+        val c = config(rcKey = "test_AbCdEf1234567890XyZ")
+
+        assertTrue(c.usesTestStoreKey)
+        assertFalse(c.revenueCatPlaceholder)
+        assertTrue(c.purchasesAvailable)
+    }
+
+    @Test
+    fun platformAndPlaceholderKeysAreNotTestStoreKeys() {
+        assertFalse(config(rcKey = "appl_this_is_a_long_public_sdk_key").usesTestStoreKey)
+        assertFalse(config(rcKey = "goog_this_is_a_long_public_sdk_key").usesTestStoreKey)
+        assertFalse(config().usesTestStoreKey)
+    }
+
+    @Test
+    fun aTestStoreKeyIsAlsoNotAProductionAdIdSituation() {
+        // Test Store only affects purchases; the ad IDs are judged independently.
+        assertTrue(config(rcKey = "test_AbCdEf1234567890XyZ").usesSampleAdIds)
+    }
+
     @Test
     fun sampleIdsAreValidLookingAdMobIdentifiers() {
         assertTrue(
